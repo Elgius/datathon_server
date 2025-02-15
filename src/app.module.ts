@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PolicyModule } from './policy/policy.module';
 import { ConfigModule } from '@nestjs/config';
+import { CohereService } from './cohere/cohere.service';
 
 @Module({
   imports: [
@@ -12,6 +13,6 @@ import { ConfigModule } from '@nestjs/config';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CohereService],
 })
 export class AppModule {}

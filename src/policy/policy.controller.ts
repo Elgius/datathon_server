@@ -7,7 +7,7 @@ export class PolicyController {
   constructor(private readonly policyService: PolicyService) {}
   @Get('file')
   async file() {
-    return this.policyService.filesPuller;
+    return this.policyService.filesPuller();
   }
 
   @Get('test')
@@ -18,5 +18,10 @@ export class PolicyController {
   @Post('chat')
   async chatqueries(@Body() query: QueryDto) {
     return this.policyService.chatqueries(query);
+  }
+
+  @Get('chart')
+  async chart() {
+    return this.policyService.dataPuller();
   }
 }
