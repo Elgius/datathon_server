@@ -5,7 +5,12 @@ import { PolicyModule } from './policy/policy.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [PolicyModule, ConfigModule.forRoot()],
+  imports: [
+    PolicyModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

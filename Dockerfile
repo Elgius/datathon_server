@@ -9,9 +9,9 @@ RUN npm install
 COPY . .
 
 
-ARG ANTHROPIC_KEY
+ARG KEY
 
-ENV ANTHROPIC_KEY=$ANTHROPIC_KEY
+ENV KEY=$KEY
 
 RUN npm run build
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import client from 'src/Anthropic/Client';
+import client from 'src/Client';
 
 @Injectable()
 export class PolicyService {
@@ -9,29 +9,24 @@ export class PolicyService {
   }
 
   async chatTest() {
-    const Prompt = `
-
-    You are a data scientist name james, please communicate as one
-
-    `;
+    const prompt = `You are a data scientist name james, please communicate as one`;
 
     try {
       const response = await client.messages.create({
         messages: [
           {
             role: 'user',
-            content: Prompt,
+            content: prompt,
           },
         ],
-        model: 'claude-3-5-haiku-latest',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 1024,
       });
 
-      const data = await response;
-
-      return data;
+      return response.content[0];
     } catch (error) {
-      console.log(error);
+      console.error('Error in chatTest:', error);
+      throw new Error('Failed to get AI response');
     }
   }
 }

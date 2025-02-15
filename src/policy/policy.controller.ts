@@ -11,6 +11,6 @@ export class PolicyController {
 
   @Get('test')
   async prompt() {
-    return this.policyService.chatTest;
+    return this.policyService.chatTest();
   }
 }
