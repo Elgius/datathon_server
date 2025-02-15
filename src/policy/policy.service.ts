@@ -1,16 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import client from 'src/Client';
 import { QueryDto } from './dto/query.dto';
-import pinecone from 'src/pinecone';
+
 import * as dotenv from 'dotenv';
-import { CohereService } from 'src/cohere/cohere.service';
 
 dotenv.config();
 
 @Injectable()
 export class PolicyService {
-  constructor(private readonly cohereService: CohereService) {}
-
   async filesPuller() {
     const files = {
       tourist_arrivals: [
@@ -94,80 +91,80 @@ export class PolicyService {
 
   // function needs to be rewritten cuz i got the vector dimensions wrong
 
-  async dataPuller() {
-    try {
-      const prompt = 'pull all the available datasets in this pdf';
+  // async dataPuller() {
+  //   try {
+  //     const prompt = 'pull all the available datasets in this pdf';
 
-      if (!process.env.PINECONE_INDEX_NAME) {
-        throw new Error('PINECONE_INDEX_NAME environment variable is not set');
-      }
+  //     if (!process.env.PINECONE_INDEX_NAME) {
+  //       throw new Error('PINECONE_INDEX_NAME environment variable is not set');
+  //     }
 
-      const index = pinecone.Index(process.env.PINECONE_INDEX_NAME);
+  //     const index = pinecone.Index(process.env.PINECONE_INDEX_NAME);
 
-      // Get vector embedding
-      const prompt_vector = await this.cohereService.embedder(prompt);
-      if (!prompt_vector) {
-        throw new Error('Failed to generate vector embedding');
-      }
+  //     // Get vector embedding
+  //     const prompt_vector = await this.cohereService.embedder(prompt);
+  //     if (!prompt_vector) {
+  //       throw new Error('Failed to generate vector embedding');
+  //     }
 
-      // Query Pinecone
-      const response = await index.query({
-        topK: 10,
-        includeValues: true,
-        includeMetadata: true,
-        vector: prompt_vector,
-      });
+  //     // Query Pinecone
+  //     const response = await index.query({
+  //       topK: 10,
+  //       includeValues: true,
+  //       includeMetadata: true,
+  //       vector: prompt_vector,
+  //     });
 
-      if (!response?.matches) {
-        throw new Error('Invalid response from Pinecone');
-      }
+  //     if (!response?.matches) {
+  //       throw new Error('Invalid response from Pinecone');
+  //     }
 
-      // Extract and join contexts
-      const contexts = response.matches
-        .map((match) => match.metadata?.text || '')
-        .join('\n');
+  //     // Extract and join contexts
+  //     const contexts = response.matches
+  //       .map((match) => match.metadata?.text || '')
+  //       .join('\n');
 
-      if (!contexts) {
-        throw new Error('No context found in matches');
-      }
+  //     if (!contexts) {
+  //       throw new Error('No context found in matches');
+  //     }
 
-      const superContext = `
-      using the following context:
+  //     const superContext = `
+  //     using the following context:
 
-      ${contexts}
+  //     ${contexts}
 
-      create a json response that can be used by recharts to create a line chart.
-      `;
+  //     create a json response that can be used by recharts to create a line chart.
+  //     `;
 
-      if (!client) {
-        throw new Error('AI client not initialized');
-      }
+  //     if (!client) {
+  //       throw new Error('AI client not initialized');
+  //     }
 
-      const info = await client.messages.create({
-        messages: [
-          {
-            role: 'user',
-            content: superContext,
-          },
-        ],
-        model: 'claude-3-sonnet',
-        max_tokens: 1024,
-      });
+  //     const info = await client.messages.create({
+  //       messages: [
+  //         {
+  //           role: 'user',
+  //           content: superContext,
+  //         },
+  //       ],
+  //       model: 'claude-3-sonnet',
+  //       max_tokens: 1024,
+  //     });
 
-      if (!info?.content?.[0]) {
-        throw new Error('Invalid AI response');
-      }
+  //     if (!info?.content?.[0]) {
+  //       throw new Error('Invalid AI response');
+  //     }
 
-      return info;
-    } catch (error) {
-      console.error('Error in dataPuller:', error);
-      throw new Error(
-        error instanceof Error
-          ? `Failed to pull data: ${error.message}`
-          : 'Failed to pull data',
-      );
-    }
-  }
+  //     return info;
+  //   } catch (error) {
+  //     console.error('Error in dataPuller:', error);
+  //     throw new Error(
+  //       error instanceof Error
+  //         ? `Failed to pull data: ${error.message}`
+  //         : 'Failed to pull data',
+  //     );
+  //   }
+  // }
 
   async chatqueries(query: QueryDto) {
     // add when policy useState is available in the frontend
@@ -182,12 +179,17 @@ export class PolicyService {
     If you are not sure about the policy, you should say "I don't know"
     If the policy is not implemented yet, you should say "The policy is not implemented yet"
     Give a forecast of the policy if it is implemented in the next 10 years. the country is Maldives.
+    Give an object called Forecast data that shows the forecast come as a recharts line chart.
 
     return the response in json format. below is an example of the response:
 
     {
       "response": "The policy is good and something similar was implemented before in countries around the world.",
       "forecast": "The policy if the policy is to be implemented in the next 10 years...."
+      "forecast_data": {
+        "xValues": [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034],
+        "yValues": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+      }
     }
 
     policy: ${query.query}
@@ -205,10 +207,22 @@ export class PolicyService {
         max_tokens: 1024,
       });
 
-      return response.content[0];
+      const cleanedResponse = await this.cleaner(response.content[0]);
+
+      return cleanedResponse;
     } catch (error) {
       console.error('Error in chatqueries:', error);
       throw new Error('Failed to get AI response');
+    }
+  }
+
+  private async cleaner(response) {
+    try {
+      const cleanedData = JSON.parse(response.text);
+      return cleanedData;
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      return null;
     }
   }
 }

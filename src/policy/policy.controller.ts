@@ -19,9 +19,4 @@ export class PolicyController {
   async chatqueries(@Body() query: QueryDto) {
     return this.policyService.chatqueries(query);
   }
-
-  @Get('chart')
-  async chart() {
-    return this.policyService.dataPuller();
-  }
 }
