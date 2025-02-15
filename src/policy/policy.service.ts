@@ -174,12 +174,15 @@ export class PolicyService {
     //   condition = 'true';
     // }
 
+    const history = [];
+
     const prompt = `
     You are a data scientist named Insight. you will be looking in to a query and answer based on your knowledge if the policy is good or something similar was implemented before (with supporting evidence) in countries around the world.
     If you are not sure about the policy, you should say "I don't know"
     If the policy is not implemented yet, you should say "The policy is not implemented yet"
     Give a forecast of the policy if it is implemented in the next 10 years. the country is Maldives.
     Give an object called Forecast data that shows the forecast come as a recharts line chart.
+    if you get query where you cannot forecast, just return null in the forecast and forecast_data object.
 
     return the response in json format. below is an example of the response:
 
@@ -194,6 +197,7 @@ export class PolicyService {
     }
 
     policy: ${query.query}
+    history: ${history}
     `;
 
     try {
@@ -209,6 +213,19 @@ export class PolicyService {
       });
 
       const cleanedResponse = await this.cleaner(response.content[0]);
+
+      if (history.length === 0) {
+        history.push({
+          role: 'assistant',
+          content: cleanedResponse.response,
+        });
+      } else {
+        history.pop();
+        history.push({
+          role: 'assistant',
+          content: cleanedResponse.response,
+        });
+      }
 
       return cleanedResponse;
     } catch (error) {
