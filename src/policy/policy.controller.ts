@@ -1,11 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
+import { PolicyService } from './policy.service';
 
 @Controller('policy')
 export class PolicyController {
+  constructor(private readonly policyService: PolicyService) {}
   @Get('file')
   async file() {
-    const files = ['file1, file2, file4'];
-
-    return files;
+    return this.policyService.filesPuller;
   }
 }
