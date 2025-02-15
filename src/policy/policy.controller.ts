@@ -8,4 +8,9 @@ export class PolicyController {
   async file() {
     return this.policyService.filesPuller;
   }
+
+  @Get('test')
+  async prompt() {
+    return this.policyService.chatTest;
+  }
 }
