@@ -190,6 +190,7 @@ export class PolicyService {
         "xValues": [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034],
         "yValues": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
       }
+      "user_query": "query"
     }
 
     policy: ${query.query}
